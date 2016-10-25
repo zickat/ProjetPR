@@ -12,6 +12,12 @@ struct direct_edge_struct {
   struct direct_edge_struct *next;
 };
 
+struct distMin
+{
+  int shortest_dist;
+  int nearest_node;
+};
+
 int **distance;
 int num_nodes, num_edges;
 struct direct_edge_struct *edges;
@@ -77,7 +83,17 @@ double dijkstra(){
 
   int shortest_dist;
   int nearest_node;
+  struct distMin dist_min;
   double start,stop;
+
+  int nb_threads = omp_get_num_threads();
+
+  struct distMin * tabMin;
+
+  if(tabMin == NULL){
+    fprintf(stderr,"Probleme de Malloc.\n");
+    exit(1);
+  }
 
   start = get_time();
   tree[0] = 1;
@@ -85,6 +101,12 @@ double dijkstra(){
   //para 1
   #pragma omp parallel
   {
+    #pragma omp single
+    {
+      nb_threads = omp_get_num_threads();
+      //printf("nb : %d\n", nb_threads);
+      tabMin = (struct distMin *)malloc(sizeof(struct distMin) * nb_threads);
+    }
 
     #pragma omp for
     for (int i = 1; i < num_nodes; i++)
@@ -95,29 +117,44 @@ double dijkstra(){
     for (int i = 0; i < num_nodes; i++)
       min_distance[i] = get_distance(0,i);
 
-  }
+  //}
 
     for (int step = 1; step < num_nodes; step++ ){
       // find nearest node
-      shortest_dist = INF;
-      nearest_node = -1;
+      int num_thread = omp_get_thread_num();
+      tabMin[num_thread].shortest_dist = INF;
+      tabMin[num_thread].nearest_node = -1;
 
       //para 3 avec reduction a la main
+      #pragma omp for
       for (int i = 0; i < num_nodes; i++){
-          if ( !tree[i] && min_distance[i] < shortest_dist ){
-          shortest_dist = min_distance[i];
-          nearest_node = i;
+        if ( !tree[i] && min_distance[i] < tabMin[num_thread].shortest_dist ){
+          tabMin[num_thread].shortest_dist = min_distance[i];
+          tabMin[num_thread].nearest_node = i;
         }
       }
+      
+      #pragma omp single
+      {
+        //reduction
+        shortest_dist = INF;
+        nearest_node = -1;
+        for(int i=0; i < nb_threads; i++){
+          if(tabMin[i].shortest_dist < shortest_dist){
+            shortest_dist = tabMin[i].shortest_dist;
+            nearest_node = tabMin[i].nearest_node;
+          }
+        }
 
-      if ( nearest_node == - 1 ){
-        fprintf(stderr,"Warning: Search ended early, the graph might not be connected.\n" );
-        break;
+        if ( nearest_node == - 1 ){
+          fprintf(stderr,"Warning: Search ended early, the graph might not be connected.\n" );
+          //break;
+        }
+
+        tree[nearest_node] = 1;
       }
-
-      tree[nearest_node] = 1;
-
-      //para 4 attention
+        //para 4 attention
+      #pragma omp for
       for (int i = 0; i < num_nodes; i++)
         if ( !tree[i] ){
           int d = get_distance(nearest_node,i);
@@ -126,7 +163,7 @@ double dijkstra(){
               min_distance[i] = min_distance[nearest_node] + d;
         }
     }
-  //}
+  }
   stop = get_time();
   return(stop-start);
 }
