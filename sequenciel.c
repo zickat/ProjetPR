@@ -42,10 +42,10 @@ int main ( int argc, char **argv ){
     read_graph(argv[1]);
 
   comp_time = dijkstra();
-
+/*
   printf("\nMinimal distance from node 0 to every other node:\n");
   for (int i = 1; i < num_nodes; i++)
-      printf("Node %d: \t%d\n", i, min_distance[i]);
+      printf("Node %d: \t%d\n", i, min_distance[i]); */
 
   fprintf(stderr,"Computation time: %f\n", comp_time);
 
