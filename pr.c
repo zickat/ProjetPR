@@ -89,11 +89,11 @@ double dijkstra(){
   int nb_threads = omp_get_num_threads();
 
   struct distMin * tabMin;
-
+  /*
   if(tabMin == NULL){
     fprintf(stderr,"Probleme de Malloc.\n");
     exit(1);
-  }
+  } */
 
   start = get_time();
   tree[0] = 1;
