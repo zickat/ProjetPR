@@ -145,6 +145,11 @@ double dijkstra(){
   printf("En para 1 :%f\n", para1);
   printf("En para 2 :%f\n", para2);
   printf("En para 3 :%f\n", para3);
+
+  printf("\n");
+
+  printf("seq : %f\n", seq1 + seq2 + seq3);
+  printf("para : %f\n", para1 + para2 + para3);
   return(stop-start);
 }
 

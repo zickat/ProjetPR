@@ -78,6 +78,8 @@ double dijkstra(){
   int nearest_node;
   double start,stop;
 
+  //omp_set_num_threads(1);
+
   start = get_time();
   tree[0] = 1;
 
@@ -102,13 +104,13 @@ double dijkstra(){
       #pragma omp for
       for (int i = 0; i < num_nodes; i++){
         if ( !tree[i] && min_distance[i] < shortest_dist ){
-          #pragma omp critical
-          {
-            if ( !tree[i] && min_distance[i] < shortest_dist ){
+          //#pragma omp critical
+          //{
+            //if ( !tree[i] && min_distance[i] < shortest_dist ){
               shortest_dist = min_distance[i];
               nearest_node = i;
-            }
-          }
+            //}
+          //}
         }
       }
     }
